@@ -5,14 +5,42 @@ const bleNusCharRXUUID   = '6e400002-b5a3-f393-e0a9-e50e24dcca9e';
 const bleNusCharTXUUID   = '6e400003-b5a3-f393-e0a9-e50e24dcca9e';
 const MTU = 20;
 
+/* ---------- Filter-By support ---------- */
+const FILTER_KEY = 'bt_nus_filter';
+
+function getSavedFilter() {
+    try {
+        return (localStorage.getItem(FILTER_KEY) || '').trim();
+    } catch (e) {
+        console.warn('Filter load failed', e);
+        return '';
+    }
+}
+
+function saveFilter() {
+    const input = document.getElementById('filterInput');
+    if (!input) return;
+    const val = (input.value || '').trim();
+    try {
+        localStorage.setItem(FILTER_KEY, val);
+        console.log('Saved filter:', val);
+    } catch (e) {
+        console.warn('Filter save failed', e);
+    }
+    if (window.term_ && window.term_.io) {
+        window.term_.io.println('\r\nSaved filter: "' + val + '"');
+    }
+}
+
+/* ---------- BLE state ---------- */
 var bleDevice;
 var bleServer;
 var nusService;
 var rxCharacteristic;
 var txCharacteristic;
-
 var connected = false;
 
+/* ---------- Connection controls ---------- */
 function connectionToggle() {
     if (connected) {
         disconnect();
@@ -22,15 +50,12 @@ function connectionToggle() {
     document.getElementById('terminal').focus();
 }
 
-// Sets button to either Connect or Disconnect
 function setConnButtonState(enabled) {
-    if (enabled) {
-        document.getElementById("clientConnectButton").innerHTML = "Disconnect";
-    } else {
-        document.getElementById("clientConnectButton").innerHTML = "Connect";
-    }
+    document.getElementById("clientConnectButton").innerHTML =
+        enabled ? "Disconnect" : "Connect";
 }
 
+/* ---------- Connect / Disconnect ---------- */
 function connect() {
     if (!navigator.bluetooth) {
         console.log('WebBluetooth API is not available.\r\n' +
@@ -39,12 +64,22 @@ function connect() {
                     'Please make sure the Web Bluetooth flag is enabled.');
         return;
     }
+
     console.log('Requesting Bluetooth Device...');
-    navigator.bluetooth.requestDevice({
-        //filters: [{services: []}]
+    const filter = getSavedFilter();
+    let options = {
         optionalServices: [bleNusServiceUUID],
         acceptAllDevices: true
-    })
+    };
+    if (filter) {
+        console.log('Using filter prefix:', filter);
+        options = {
+            optionalServices: [bleNusServiceUUID],
+            filters: [{ namePrefix: filter }]
+        };
+    }
+
+    navigator.bluetooth.requestDevice(options)
     .then(device => {
         bleDevice = device; 
         console.log('Found ' + device.name);
@@ -91,8 +126,7 @@ function connect() {
     .catch(error => {
         console.log('' + error);
         window.term_.io.println('' + error);
-        if(bleDevice && bleDevice.gatt.connected)
-        {
+        if (bleDevice && bleDevice.gatt.connected) {
             bleDevice.gatt.disconnect();
         }
     });
@@ -120,11 +154,9 @@ function onDisconnected() {
     setConnButtonState(false);
 }
 
+/* ---------- NUS data path ---------- */
 function handleNotifications(event) {
-    console.log('notification');
     let value = event.target.value;
-    // Convert raw data bytes to character values and use these to 
-    // construct a string.
     let str = "";
     for (let i = 0; i < value.byteLength; i++) {
         str += String.fromCharCode(value.getUint8(i));
@@ -133,12 +165,10 @@ function handleNotifications(event) {
 }
 
 function nusSendString(s) {
-    if(bleDevice && bleDevice.gatt.connected) {
-        console.log("send: " + s);
-        let val_arr = new Uint8Array(s.length)
+    if (bleDevice && bleDevice.gatt.connected) {
+        let val_arr = new Uint8Array(s.length);
         for (let i = 0; i < s.length; i++) {
-            let val = s[i].charCodeAt(0);
-            val_arr[i] = val;
+            val_arr[i] = s.charCodeAt(i);
         }
         sendNextChunk(val_arr);
     } else {
@@ -156,17 +186,17 @@ function sendNextChunk(a) {
       });
 }
 
-
-
+/* ---------- Terminal setup ---------- */
 function initContent(io) {
     io.println("\r\n\
-Welcome to Web Device CLI V0.1.0 (03/19/2019)\r\n\
+Welcome to Web Device CLI V0.1.1 (29.10.2025)\r\n\
 Copyright (C) 2019  makerdiary.\r\n\
+Copyright (C) 2025  tsotnekarchava.\r\n\
 \r\n\
 This is a Web Command Line Interface via NUS (Nordic UART Service) using Web Bluetooth.\r\n\
 \r\n\
-  * Source: https://github.com/makerdiary/web-device-cli\r\n\
-  * Live:   https://makerdiary.github.io/web-device-cli\r\n\
+  * Source: https://github.com/tsotnekarchava/web-device-cli\r\n\
+  * Live:   https://tsotnekarchava.github.io/web-device-cli\r\n\
 ");
 }
 
@@ -175,9 +205,7 @@ function setupHterm() {
 
     term.onTerminalReady = function() {
         const io = this.io.push();
-        io.onVTKeystroke = (string) => {
-            nusSendString(string);
-        };
+        io.onVTKeystroke = (string) => { nusSendString(string); };
         io.sendString = nusSendString;
         initContent(io);
         this.setCursorVisible(true);
@@ -190,15 +218,19 @@ function setupHterm() {
         ['Terminal Reset', () => {term.reset(); initContent(window.term_.io);}],
         ['Terminal Clear', () => {term.clearHome();}],
         [hterm.ContextMenu.SEPARATOR],
-        ['GitHub', function() {
+        ['GitHub', () => {
             lib.f.openWindow('https://github.com/makerdiary/web-device-cli', '_blank');
         }],
     ]);
 
-    // Useful for console debugging.
-    window.term_ = term;
+    window.term_ = term; // for console debugging
 }
 
+/* ---------- On-load ---------- */
 window.onload = function() {
     lib.init(setupHterm);
+    const filterInput = document.getElementById('filterInput');
+    if (filterInput) {
+        filterInput.value = getSavedFilter();
+    }
 };

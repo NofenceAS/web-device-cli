@@ -1,40 +1,111 @@
-
-html {
-  height: 100%;
-}
-body {
-  position: absolute;
-  height: 100%;
-  width: 100%;
-  overflow: hidden;
-  margin: 0px;
-  padding: 0px;
-  background: #101010;
-}
+/* Fullscreen terminal */
+/* Push terminal text down a bit so it doesn't hide under buttons */
 #terminal {
   display: block;
   position: fixed;
-  top: 80px;
-  bottom: 5%;
+  top: 0;
+  left: 0;
   width: 100%;
+  height: 100%;
+  background: #101010;
+  z-index: 1;
+  padding-top: 90px;
+  /* adjust to match your toolbar height */
+  box-sizing: border-box;
 }
 
+
+/* Connection panel floats above */
 #connection-panel {
-  background: transparent;
+  position: fixed;
+  top: 15px;
+  left: 15px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: rgba(16, 16, 16, 0.6);
+  /* semi-transparent so terminal shows through */
+  padding: 6px 10px;
+  border-radius: 10px;
+  z-index: 10;
+  /* above terminal */
+  backdrop-filter: blur(4px);
+  /* subtle blur for better contrast */
 }
 
+
+/* Connect button */
 #clientConnectButton {
-  position:fixed;
-  background-color: rgb(51,105,232);
+  background-color: rgb(51, 105, 232);
   border: none;
   border-radius: 8px;
   width: 120px;
-  height: 50px;
+  height: 45px;
   color: white;
-  text-align: center;
-  text-decoration: none;
   font-size: 16px;
-  left: 15px;
-  top: 15px;
   cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+
+#clientConnectButton:hover {
+  background-color: rgb(41, 95, 222);
+}
+
+/* Filter input (matches button height and theme) */
+#filterInput {
+  height: 43px;
+  width: 180px;
+  border-radius: 8px;
+  border: 1px solid #333;
+  background-color: #1c1c1c;
+  color: #fff;
+  font-size: 15px;
+  padding: 0 12px;
+  outline: none;
+  transition: border-color 0.2s, background-color 0.2s;
+}
+
+#filterInput:focus {
+  border-color: rgb(51, 105, 232);
+  background-color: #181818;
+}
+
+/* Filter By button — same style as Connect */
+#saveFilterButton {
+  background-color: rgb(60, 60, 60);
+  border: none;
+  border-radius: 8px;
+  width: 100px;
+  height: 45px;
+  color: #fff;
+  font-size: 15px;
+  cursor: pointer;
+  transition: background-color 0.2s ease, transform 0.1s;
+}
+
+#saveFilterButton:hover {
+  background-color: rgb(51, 105, 232);
+}
+
+#saveFilterButton:active {
+  transform: scale(0.97);
+}
+
+/* --- GitHub corner overlay --- */
+.github-corner {
+  position: fixed !important;
+  top: 0;
+  right: 0;
+  z-index: 20;
+  /* above terminal and buttons */
+}
+
+.github-corner svg {
+  fill: #fff;
+  color: #151513;
+  transition: transform 0.2s ease;
+}
+
+.github-corner:hover svg {
+  transform: scale(1.05);
 }
