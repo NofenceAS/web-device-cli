@@ -195,8 +195,8 @@ Copyright (C) 2025  tsotnekarchava.\r\n\
 \r\n\
 This is a Web Command Line Interface via NUS (Nordic UART Service) using Web Bluetooth.\r\n\
 \r\n\
-  * Source: https://github.com/tsotnekarchava/web-device-cli\r\n\
-  * Live:   https://tsotnekarchava.github.io/web-device-cli\r\n\
+  * Source: https://github.com/NofenceAS/web-device-cli\r\n\
+  * Live:   https://nofenceas.github.io/web-device-cli/\r\n\
 ");
 }
 
