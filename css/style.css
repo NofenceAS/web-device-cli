@@ -1,19 +1,29 @@
-/* Fullscreen terminal */
-/* Push terminal text down a bit so it doesn't hide under buttons */
+/* --- Base (keeps the "working" behavior) --- */
+html {
+  height: 100%;
+}
+
+body {
+  position: absolute;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  margin: 0;
+  padding: 0;
+  background: #101010;
+}
+
+/* Terminal container: fixed between panel top and bottom edge */
 #terminal {
   display: block;
   position: fixed;
-  top: 0;
-  left: 0;
+  /* top is set dynamically by JS to sit just below the panel */
+  top: 80px;
+  /* fallback */
+  bottom: 5%;
+  /* gives that "extra empty space" feel at the end */
   width: 100%;
-  height: 100%;
-  background: #101010;
-  z-index: 1;
-  padding-top: 90px;
-  /* adjust to match your toolbar height */
-  box-sizing: border-box;
 }
-
 
 /* Connection panel floats above */
 #connection-panel {
@@ -23,89 +33,70 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  background: rgba(16, 16, 16, 0.6);
-  /* semi-transparent so terminal shows through */
-  padding: 6px 10px;
-  border-radius: 10px;
-  z-index: 10;
-  /* above terminal */
-  backdrop-filter: blur(4px);
-  /* subtle blur for better contrast */
+  background: transparent;
 }
 
-
-/* Connect button */
+/* Buttons / inputs */
 #clientConnectButton {
-  background-color: rgb(51, 105, 232);
+  background: #3369e8;
   border: none;
   border-radius: 8px;
   width: 120px;
-  height: 45px;
-  color: white;
+  height: 50px;
+  color: #fff;
   font-size: 16px;
   cursor: pointer;
-  transition: background-color 0.2s ease;
 }
 
-#clientConnectButton:hover {
-  background-color: rgb(41, 95, 222);
-}
-
-/* Filter input (matches button height and theme) */
+/* Filter input + button (new) */
 #filterInput {
-  height: 43px;
+  height: 48px;
   width: 180px;
   border-radius: 8px;
   border: 1px solid #333;
-  background-color: #1c1c1c;
+  background: #1c1c1c;
   color: #fff;
   font-size: 15px;
   padding: 0 12px;
   outline: none;
-  transition: border-color 0.2s, background-color 0.2s;
 }
 
 #filterInput:focus {
-  border-color: rgb(51, 105, 232);
-  background-color: #181818;
+  border-color: #3369e8;
 }
 
-/* Filter By button — same style as Connect */
 #saveFilterButton {
-  background-color: rgb(60, 60, 60);
+  background: #3c3c3c;
   border: none;
   border-radius: 8px;
-  width: 100px;
-  height: 45px;
+  width: 110px;
+  height: 50px;
   color: #fff;
   font-size: 15px;
   cursor: pointer;
-  transition: background-color 0.2s ease, transform 0.1s;
 }
 
-#saveFilterButton:hover {
-  background-color: rgb(51, 105, 232);
+/* hterm lives inside an iframe: ensure it fills */
+#terminal iframe {
+  width: 100% !important;
+  height: 100% !important;
+  display: block;
 }
 
-#saveFilterButton:active {
-  transform: scale(0.97);
-}
+/* --- Small screens: stack the controls under Connect --- */
+@media (max-width: 700px) {
+  #connection-panel {
+    right: 15px;
+    max-width: calc(100% - 30px);
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
 
-/* --- GitHub corner overlay --- */
-.github-corner {
-  position: fixed !important;
-  top: 0;
-  right: 0;
-  z-index: 20;
-  /* above terminal and buttons */
-}
-
-.github-corner svg {
-  fill: #fff;
-  color: #151513;
-  transition: transform 0.2s ease;
-}
-
-.github-corner:hover svg {
-  transform: scale(1.05);
+  #clientConnectButton,
+  #filterInput,
+  #saveFilterButton {
+    width: 100%;
+    box-sizing: border-box;
+  }
 }
